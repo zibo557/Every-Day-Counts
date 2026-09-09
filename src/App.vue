@@ -22,6 +22,58 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+const eventName = ref('')
+const targetDateTime = ref('')
+const listData = ref([])
+let timer = null
+
+function getCountDown(targetTimestamp) {
+  const now = Date.now()
+  const diff = targetTimestamp - now
+  if (diff <= 0) return '已结束'
+  const day = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hour = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const min = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const sec = Math.floor((diff % (1000 * 60)) / 1000)
+  return `${day}天 ${hour}时 ${min}分 ${sec}秒`
+}
+
+function addItem() {
+  const name = eventName.value.trim()
+  const timeStr = targetDateTime.value
+  if (!name || !timeStr) {
+    alert('请填写事件名称和目标时间')
+    return
+  }
+  const target = new Date(timeStr).getTime()
+  listData.value.push({
+    id: Date.now(),
+    title: name,
+    targetTime: target,
+    countStr: getCountDown(target)
+  })
+  eventName.value = ''
+  targetDateTime.value = ''
+}
+
+function delItem(id) {
+  listData.value = listData.value.filter(i => i.id !== id)
+}
+
+function updateAllCount() {
+  listData.value.forEach(item => {
+    item.countStr = getCountDown(item.targetTime)
+  })
+}
+
+onMounted(() => {
+  timer = setInterval(updateAllCount, 1000)
+})
+
+onUnmounted(() => {
+  clearInterval(timer)
+})
 
 </script>
 
